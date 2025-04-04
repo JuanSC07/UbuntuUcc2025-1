@@ -1,0 +1,23 @@
+version: '3'
+services:
+  container10:  # API container name
+    image: alpine
+    command: sh -c "apk add --no-cache curl && while true; do curl -s http://external-api.com/endpoint; sleep 5; done"
+    networks:
+      - network1
+    environment:
+      - API_URL=http://external-api.com/endpoint  # Example of API URL environment variable
+    
+  api-caller:  # Renamed client container (was api-client)
+    image: alpine
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sh -c "apk add --no-cache docker-cli && while true; do docker exec container10 curl http://container10/; sleep 5; done"
+    networks:
+      - network1
+    depends_on:
+      - container10
+
+networks:
+  network1:
+    driver: bridge
